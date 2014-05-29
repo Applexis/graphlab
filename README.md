@@ -40,6 +40,14 @@ For more details on the GraphLab see http://graphlab.org, including
 documentation, tutorial, etc.
 
 
+Incremental Pagerank
+------------
+
+The branch "incremental_pagerank" is with the aim of realizing a incremental page rank algorithm with graphlab.
+
+To achieve this goal, efforts are done followed:
+
+* TODO
 
 Dependencies
 ------------
