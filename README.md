@@ -47,7 +47,9 @@ The branch "incremental_pagerank" is with the aim of realizing a incremental pag
 
 To achieve this goal, efforts are done followed:
 
-* TODO
+* Revise one execution engine (i.e. Omniengine) to make the process keep running.
+
+* Balanced assign new vertexes to each node. 
 
 Dependencies
 ------------
