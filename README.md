@@ -12,7 +12,7 @@ license/LICENSE.txt for details.
 Introduction
 ------------
 
-GraphLab is a graph-based, high performance, distributed computation framework
+GraphLab is a graph-based  high performance, distributed computation framework
 written in C++. The GraphLab project started in 2009 to develop a new parallel computation abstraction 
 tailored to machine learning. GraphLab 1.0 represents our first shared memory design,
 and in GraphLab 2.1, we completely redesigned the framework to target the distributed environment addressing
