@@ -2158,6 +2158,17 @@ namespace graphlab {
      *  \ref load(const std::string& path, line_parser_type line_parser)
      *  but only loads from the filesystem.
      */
+
+
+
+      /**
+       * Modified by Liang Yunlong
+       * Incremental read new files from input directory
+       *
+       */
+
+
+
     void load_from_posixfs(std::string prefix,
                            line_parser_type line_parser) {
       std::string directory_name; std::string original_path(prefix);
@@ -2176,6 +2187,17 @@ namespace graphlab {
         directory_name = (directory_name.empty() ? "." : directory_name);
       }
       std::vector<std::string> graph_files;
+
+
+
+      // Add by Liang Yunlong
+      // log the previous read files
+      std::vector<std::string> previous_graph_files;
+      
+
+
+
+
       fs_util::list_files_with_prefix(directory_name, search_prefix, graph_files);
       if (graph_files.size() == 0) {
         logstream(LOG_WARNING) << "No files found matching " << original_path << std::endl;
@@ -2185,6 +2207,21 @@ namespace graphlab {
 #pragma omp parallel for
 #endif
       for(size_t i = 0; i < graph_files.size(); ++i) {
+
+
+        //Add by Liang Yunlong
+        //judge if the file has been read before
+        bool has_been_read = false;
+        for(size_t j = 0; j < previous_graph_files.size(); ++j){
+          if(previous_graph_files[j] == graph_files[i]){
+            has_been_read = true;
+            break;
+          }
+        }
+        if(has_been_read)
+          continue;
+        previous_graph_files.push_back(graph_files[i]);
+
         if ((parallel_ingress && (i % rpc.numprocs() == rpc.procid()))
             || (!parallel_ingress && (rpc.procid() == 0))) {
           logstream(LOG_EMPH) << "Loading graph from file: " << graph_files[i] << std::endl;

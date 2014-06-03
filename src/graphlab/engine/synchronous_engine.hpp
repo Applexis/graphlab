@@ -49,6 +49,9 @@
 #include <graphlab/rpc/distributed_event_log.hpp>
 #include <graphlab/rpc/fiber_buffered_exchange.hpp>
 
+#include <ctime> 
+#include <sys/stat.h> 
+#include <string> 
 
 
 
@@ -1253,6 +1256,8 @@ namespace graphlab {
   float synchronous_engine<VertexProgram>::
   elapsed_seconds() const { return timer::approx_time_seconds() - start_time; }
 
+
+
   template<typename VertexProgram>
   int synchronous_engine<VertexProgram>::
   iteration() const { return iteration_counter; }
@@ -1265,6 +1270,14 @@ namespace graphlab {
     rmi.all_reduce(allocated_memory);
     return allocated_memory;
   } // compute the total memory usage of the GraphLab system
+
+
+  /**
+   *  modified by Liang Yunlong
+   *  
+   *  incremental read files from input dir
+   *
+   */
 
 
   template<typename VertexProgram> execution_status::status_enum
@@ -1299,6 +1312,24 @@ namespace graphlab {
       logstream(LOG_EMPH) << "Iteration counter will only output every 5 seconds."
                         << std::endl;
     }
+
+
+
+
+    // Add by Liang Yunlong  =========================================================//
+    size_t start_time_millis = timer::approx_time_millis();
+    size_t cycletime = 2000;
+    std::string dirname = "/home/hadoop/data";
+    std::string format = "tsv";
+    struct stat previous_dir_info;
+    struct stat current_dir_info;
+    size_t elapsed_millis() const {return timer::approx_time_millis() - start_time_millis;}
+    //End of Add=======================================================================//
+
+
+
+
+
     // Program Main loop ====================================================
     while(iteration_counter < max_iterations && !force_abort ) {
 
@@ -1307,6 +1338,30 @@ namespace graphlab {
         termination_reason = execution_status::TIMEOUT;
         break;
       }
+
+
+
+
+
+      /**
+        *Check if there comes new input files every 2 seconds
+        *if there are new files, merge the data of the new files into our graph
+        */
+      if(elapsed_millis() % cycletime == 0){
+        if(stat(dirname.c_str(), &current_dir_info) < 0){
+          logstream(LOG_EMPH)<<"cann't get the information of the input directory"<<dirname<<std::endl;
+          logstream(LOG_EMPH)<<"we break the while loop"<<std::endl;
+        }
+        if(current_dir_info.st_ctime != previous_dir_info.st_ctime){
+          graph.load_format(dirname, format);
+          previous_dir_info = current_dir_info;
+        }
+      }
+
+
+
+
+
 
       bool print_this_round = (elapsed_seconds() - last_print) >= 5;
 
@@ -1362,11 +1417,16 @@ namespace graphlab {
       if (rmi.procid() == 0 && print_this_round)
         logstream(LOG_EMPH)
           << "\tActive vertices: " << total_active_vertices << std::endl;
-      if(total_active_vertices == 0 ) {
+
+
+        // Add by Liang Yunlong
+        //never leave the while loop
+
+/*      if(total_active_vertices == 0 ) {
         termination_reason = execution_status::TASK_DEPLETION;
         break;
       }
-
+*/
 
       // Execute gather operations-------------------------------------------
       // Execute the gather operation for all vertices that are active
@@ -1418,7 +1478,7 @@ namespace graphlab {
       if (snapshot_interval > 0 && iteration_counter % snapshot_interval == 0) {
         graph.save_binary(snapshot_path);
       }
-    }
+    } 
 
     if (rmi.procid() == 0) {
       logstream(LOG_EMPH) << iteration_counter
