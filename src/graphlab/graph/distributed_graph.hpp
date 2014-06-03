@@ -2167,8 +2167,9 @@ namespace graphlab {
        *
        */
 
-
-
+    // Add by Liang Yunlong
+    // log the previous read files
+    std::vector<std::string> previous_graph_files;
     void load_from_posixfs(std::string prefix,
                            line_parser_type line_parser) {
       std::string directory_name; std::string original_path(prefix);
@@ -2190,12 +2191,8 @@ namespace graphlab {
 
 
 
-      // Add by Liang Yunlong
-      // log the previous read files
-      std::vector<std::string> previous_graph_files;
+
       
-
-
 
 
       fs_util::list_files_with_prefix(directory_name, search_prefix, graph_files);
