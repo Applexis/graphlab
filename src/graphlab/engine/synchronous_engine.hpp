@@ -1323,7 +1323,6 @@ namespace graphlab {
     std::string format = "tsv";
     struct stat previous_dir_info;
     struct stat current_dir_info;
-    size_t elapsed_millis() const {return timer::approx_time_millis() - start_time_millis;}
     //End of Add=======================================================================//
 
 
@@ -1347,7 +1346,7 @@ namespace graphlab {
         *Check if there comes new input files every 2 seconds
         *if there are new files, merge the data of the new files into our graph
         */
-      if(elapsed_millis() % cycletime == 0){
+      if((timer::approx_time_millis() - start_time_millis) % cycletime == 0){
         if(stat(dirname.c_str(), &current_dir_info) < 0){
           logstream(LOG_EMPH)<<"cann't get the information of the input directory"<<dirname<<std::endl;
           logstream(LOG_EMPH)<<"we break the while loop"<<std::endl;
