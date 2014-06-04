@@ -52,6 +52,7 @@
 #include <ctime> 
 #include <sys/stat.h> 
 #include <string> 
+#include <sstream>
 
 
 
@@ -1279,6 +1280,23 @@ namespace graphlab {
    *
    */
 
+   //Add by Liang Yunlong
+   //write the  graph pr onto filesystem when the graph converges
+
+   /*
+ * We want to save the final graph so we define a write which will be
+ * used in graph.save("path/prefix", pagerank_writer()) to save the graph.
+ */
+
+struct pagerank_writer {
+  std::string save_vertex(graph_type::vertex_type v) {
+    std::stringstream strm;
+    strm << v.id() << "\t" << v.data() << "\n";
+    return strm.str();
+  }
+  std::string save_edge(graph_type::edge_type e) { return ""; }
+}; // end of pagerank writer
+
 
   template<typename VertexProgram> execution_status::status_enum
   synchronous_engine<VertexProgram>::start() {
@@ -1323,6 +1341,7 @@ namespace graphlab {
     std::string format = "tsv";
     struct stat previous_dir_info;
     struct stat current_dir_info;
+    std::string saveprefix = "/home/hadoop/out";
     //End of Add=======================================================================//
 
 
@@ -1396,8 +1415,15 @@ namespace graphlab {
         logstream(LOG_EMPH)
           << "\tActive vertices: " << total_active_vertices << std::endl;
 
+      //Add by Liang Yunlong
       if(total_active_vertices == 0 ) {
+/*        graph.save(saveprefix, pagerank_writer(),
+               false,    // do not gzip
+               true,     // save vertices
+               false);   // do not save edges
         sleep(500);
+*/
+        break;
       }
 
       /**
