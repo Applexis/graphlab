@@ -2188,39 +2188,37 @@ namespace graphlab {
         directory_name = (directory_name.empty() ? "." : directory_name);
       }
       std::vector<std::string> graph_files;
+      std::vector<std::string> graph_files_listed;
 
-
-
-
-      
-
-
-      fs_util::list_files_with_prefix(directory_name, search_prefix, graph_files);
-      if (graph_files.size() == 0) {
+      fs_util::list_files_with_prefix(directory_name, search_prefix, graph_files_listed);
+      if (graph_files_listed.size() == 0) {
         logstream(LOG_WARNING) << "No files found matching " << original_path << std::endl;
+      }
+
+      for (size_t i = 0; i < graph_files_listed.size(); ++i) {
+        //Add by Liang Yunlong
+        //judge if the file has been read before
+        bool has_been_read = false;
+        for (size_t j = 0; j < previous_graph_files.size(); ++j) {
+          if (previous_graph_files[j] == graph_files_listed[i]) {
+            has_been_read = true;
+            break;
+          }
+        }
+        
+        if(has_been_read) {
+          continue;
+        }
+
+        // logstream(LOG_INFO) << "[distributed_graph]The " << i << "st file is readed" << std::endl;
+        graph_files.push_back(graph_files_listed[i]);
+        previous_graph_files.push_back(graph_files_listed[i]);
       }
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
       for(size_t i = 0; i < graph_files.size(); ++i) {
-
-
-        //Add by Liang Yunlong
-        //judge if the file has been read before
-        bool has_been_read = false;
-        for(size_t j = 0; j < previous_graph_files.size(); ++j){
-          if(previous_graph_files[j] == graph_files[i]){
-            has_been_read = true;
-            break;
-          }
-        }
-        if(has_been_read)
-          continue;
-
-        // here should cout something to avoid crash.
-        logstream(LOG_INFO) << "[debug]The " << i << "st file is readed" << std::endl;
-        previous_graph_files.push_back(graph_files[i]);
 
         if ((parallel_ingress && (i % rpc.numprocs() == rpc.procid()))
             || (!parallel_ingress && (rpc.procid() == 0))) {
