@@ -1289,21 +1289,6 @@ namespace graphlab {
  */
 
 // The vertex data is just the pagerank value (a float)
-typedef float vertex_data_type;
-
-// There is no edge data in the pagerank application
-typedef graphlab::empty edge_data_type;
-
-// The graph type is determined by the vertex and edge data types
-typedef graphlab::distributed_graph<vertex_data_type, edge_data_type> graph_type;
-struct pagerank_writer {
-  std::string save_vertex(graph_type::vertex_type v) {
-    std::stringstream strm;
-    strm << v.id() << "\t" << v.data() << "\n";
-    return strm.str();
-  }
-  std::string save_edge(graph_type::edge_type e) { return ""; }
-}; // end of pagerank writer
 
 
   template<typename VertexProgram> execution_status::status_enum
