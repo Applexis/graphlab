@@ -1414,9 +1414,10 @@ namespace graphlab {
                false,    // do not gzip
                true,     // save vertices
                false);   // do not save edges
-        sleep(500);
 */
-        break;
+        sleep(500);
+
+ //       break;
       }
 
       /**

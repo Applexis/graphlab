@@ -83,8 +83,8 @@ namespace graphlab {
   private:
     class edge_iterator;
 
-    set<lvid_type> crSet;
-    set<lvid_type> bSet;
+    std::set<lvid_type> crSet;
+    std::set<lvid_type> bSet;
 
   public:
     typedef boost::iterator_range<edge_iterator> edge_list_type;
@@ -120,6 +120,9 @@ namespace graphlab {
       vset_to_activate.lazy = false;
       vset_to_activate.localvset.resize(num_vertices());
       vset_to_activate.localvset.clear();
+      bSet.clear();
+      crSet.clear();
+std::cout<<"[dynamic_local_graph]vset is inited" << std::endl;
     }
 
     /**
@@ -144,58 +147,6 @@ namespace graphlab {
     size_t num_edges() const {
         return edges.size();
     } // end of num edges
-
-    //add by cyc
-    void getIncrementalVertice() {
-      set<lvid_type>::iterator iter;
-      queue<lvid_type> q;
-      for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
-        q.push(*iter);
-      }
-      //get cr set            
-      while(!q.empty) {
-        lvid_type x = q.front();
-        q.pop();
-        vertex_type v(x);
-        edge_list_type vers = v.out_edges();
-        foreach(edge_type e, vers) {
-          lvid_type out = e.target().id();
-          if(crSet.find(out) == crSet.end()) {
-            q.push(out);
-            crSet.insert(out);
-          }
-          // fout << (lvid_type)i << ", " << e.target().id() << "\n";
-          // ASSERT_TRUE(fout.good());
-        }
-      }
-      //get b set
-      for(size_t i = 0; i < num_vertices(); i++) {
-        if(crSet.find((lvid_type)i) != crSet.end())
-          continue;
-        vertex_type v(i);
-        edge_list_type vers = v.out_edges();
-        foreach(edge_type e, vers) {
-          lvid_type out = e.target().id();
-          if(crSet.find(out) != crSet.end()) {
-            bSet.insert(out);
-            break;
-          }
-          // fout << (lvid_type)i << ", " << e.target().id() << "\n";
-          // ASSERT_TRUE(fout.good());
-        }
-      }
-      for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
-        vset_to_activate.dynamic_set_lvid(*iter);
-        logstream(LOG_INFO)
-          << "crSet: " << *iter << std::endl;
-      }
-      for (iter=bSet.begin(); iter!=bSet.end(); iter++) {
-        vset_to_activate.dynamic_set_lvid(*iter);
-        logstream(LOG_INFO)
-          << "bSet: " << *iter << std::endl;
-      }
-      
-    }
 
     /**
      * \brief Creates a vertex containing the vertex data and returns the id
@@ -247,6 +198,9 @@ namespace graphlab {
      */
     edge_id_type add_edge(lvid_type source, lvid_type target,
                           const EdgeData& edata = EdgeData()) {
+std::cout << "[dynamic_local_graph]target: "<<target<<" source: " << source<< std::endl;
+crSet.insert(source);
+crSet.insert(target);
       if(source == target) {
         logstream(LOG_FATAL)
           << "Attempting to add self edge (" << source << " -> " << target <<  ").  "
@@ -322,6 +276,64 @@ namespace graphlab {
       return vertices[v];
     } // end of data(v)
 
+    //add by cyc
+    void getIncrementalVertice() {
+      std::set<lvid_type>::iterator iter;
+      std::queue<lvid_type> q;
+      for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
+        q.push(*iter);
+      }
+      //get cr set            
+      while(!q.empty()) {
+        graphlab::lvid_type x = (graphlab::lvid_type)q.front();
+        q.pop();
+        vertex_type v(*this, x);
+        edge_list_type vers = v.out_edges();
+std::cout<<"[testout]out edges of v " << x << "-> ";
+        foreach(edge_type e, vers) {
+          lvid_type out = e.target().id();
+std::cout <<out<< " ";
+          if(crSet.find(out) == crSet.end()) {
+            q.push(out);
+            crSet.insert(out);
+            logstream(LOG_INFO)
+              << "urSet: " << out << std::endl;
+          }
+          // fout << (lvid_type)i << ", " << e.target().id() << "\n";
+          // ASSERT_TRUE(fout.good());
+        }
+std::cout <<std::endl;
+      }
+      //get b set
+      for(size_t i = 0; i < num_vertices(); i++) {
+        if(crSet.find((lvid_type)i) != crSet.end())
+          continue;
+        vertex_type v(*this, i);
+        edge_list_type vers = v.out_edges();
+        foreach(edge_type e, vers) {
+          lvid_type out = e.target().id();
+          if(crSet.find(out) != crSet.end()) {
+            bSet.insert(i);
+            break;
+          }
+          // fout << (lvid_type)i << ", " << e.target().id() << "\n";
+          // ASSERT_TRUE(fout.good());
+        }
+      }
+      for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
+        vset_to_activate.dynamic_set_lvid(*iter);
+        logstream(LOG_INFO)
+          << "crSet: " << *iter << std::endl;
+      }
+      for (iter=bSet.begin(); iter!=bSet.end(); iter++) {
+        vset_to_activate.dynamic_set_lvid(*iter);
+        logstream(LOG_INFO)
+          << "bSet: " << *iter << std::endl;
+      }
+      
+    }
+
+
     /**
      * \brief Finalize the local_graph data structure by
      * sorting edges to maximize the efficiency of graphlab.
@@ -331,7 +343,6 @@ namespace graphlab {
      * This is also automatically invoked by the engine at start.
      */
     void finalize() {
-
       graphlab::timer mytimer; mytimer.start();
 #ifdef DEBUG_GRAPH
       logstream(LOG_DEBUG) << "Graph2 finalize starts." << std::endl;
@@ -416,8 +427,9 @@ namespace graphlab {
       _csc_storage.meminfo(std::cerr);
 #endif
 
-    //add by cyc
+      //add by cyc
       getIncrementalVertice();
+
 
       //
     } // End of finalize
