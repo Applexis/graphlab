@@ -78,10 +78,10 @@ namespace graphlab {
 
     typedef graphlab::vertex_id_type vertex_id_type;
     typedef graphlab::edge_id_type edge_id_type;
+    vertex_set vset_to_activate;
 
   private:
     class edge_iterator;
-    vertex_set vset_to_activate;
 
   public:
     typedef boost::iterator_range<edge_iterator> edge_list_type;
@@ -160,7 +160,7 @@ namespace graphlab {
       }
       vertices[vid] = vdata;
       vset_to_activate.dynamic_set_lvid(vid);
-      std::cout << "[debug]a vertex is added, id is:" << vid << std::endl;
+      std::cout << "[dynamic_local_graph]a vertex is added, id is:" << vid << std::endl;
     } // End of add vertex;
 
     void reserve(size_t num_vertices) {

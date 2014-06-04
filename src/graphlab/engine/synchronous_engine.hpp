@@ -1389,6 +1389,8 @@ namespace graphlab {
       // Check termination condition  ---------------------------------------
       size_t total_active_vertices = num_active_vertices;
       rmi.all_reduce(total_active_vertices);
+
+      // by Applex. force to print if there is active vertices.
       print_this_round = print_this_round || total_active_vertices > 0;
       if (rmi.procid() == 0 && print_this_round)
         logstream(LOG_EMPH)
@@ -1412,6 +1414,9 @@ namespace graphlab {
         if(current_dir_info.st_ctime != previous_dir_info.st_ctime){
           graph.load_format(dirname, format);
           previous_dir_info = current_dir_info;
+          graph.finalize();
+          // signal_all();
+          signal_vset(graph.local_vset_to_activate());
         }
       }
 

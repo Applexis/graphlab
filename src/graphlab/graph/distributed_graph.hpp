@@ -2709,6 +2709,11 @@ namespace graphlab {
     size_t num_local_own_vertices() const { return local_own_nverts; }
 
     /** \internal
+     * \brief returns the vertice set that should be signaled in incremental procedure.
+     */
+    vertex_set local_vset_to_activate() const {return local_graph.vset_to_activate; }
+
+    /** \vset_to_activate
      *\brief Convert a global vid to a local vid */
     lvid_type local_vid (const vertex_id_type vid) const {
       // typename boost::unordered_map<vertex_id_type, lvid_type>::
