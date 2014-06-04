@@ -1302,7 +1302,7 @@ struct pagerank_writer {
     strm << v.id() << "\t" << v.data() << "\n";
     return strm.str();
   }
-  std::string save_edge(edge_type e) { return ""; }
+  std::string save_edge(graph_type::edge_type e) { return ""; }
 }; // end of pagerank writer
 
 
