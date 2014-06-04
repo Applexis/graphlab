@@ -1289,12 +1289,12 @@ namespace graphlab {
  */
 
 struct pagerank_writer {
-  std::string save_vertex(graph_type::vertex_type v) {
+  std::string save_vertex(vertex_type v) {
     std::stringstream strm;
     strm << v.id() << "\t" << v.data() << "\n";
     return strm.str();
   }
-  std::string save_edge(graph_type::edge_type e) { return ""; }
+  std::string save_edge(edge_type e) { return ""; }
 }; // end of pagerank writer
 
 
