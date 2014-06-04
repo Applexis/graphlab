@@ -186,9 +186,13 @@ namespace graphlab {
       }
       for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
         vset_to_activate.dynamic_set_lvid(*iter);
+        logstream(LOG_INFO)
+          << "crSet: " << *iter << std::endl;
       }
       for (iter=bSet.begin(); iter!=bSet.end(); iter++) {
         vset_to_activate.dynamic_set_lvid(*iter);
+        logstream(LOG_INFO)
+          << "bSet: " << *iter << std::endl;
       }
       
     }
