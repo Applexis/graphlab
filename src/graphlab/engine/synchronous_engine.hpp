@@ -1338,32 +1338,6 @@ namespace graphlab {
         break;
       }
 
-
-
-
-
-      /**
-        *Check if there comes new input files every 2 seconds
-        *if there are new files, merge the data of the new files into our graph
-        */
-      if((timer::approx_time_millis() - start_time_millis) % cycletime == 0){
-        if(stat(dirname.c_str(), &current_dir_info) < 0){
-          logstream(LOG_EMPH)<<"cann't get the information of the input directory"<<dirname<<std::endl;
-          logstream(LOG_EMPH)<<"we break the while loop"<<std::endl;
-        }
-        if(current_dir_info.st_ctime != previous_dir_info.st_ctime){
-          graph.load_format(dirname, format);
-          previous_dir_info = current_dir_info;
-          graph.finalize();
-          signal_all();
-        }
-      }
-
-
-
-
-
-
       bool print_this_round = (elapsed_seconds() - last_print) >= 5;
 
       if(rmi.procid() == 0 && print_this_round) {
@@ -1415,10 +1389,31 @@ namespace graphlab {
       // Check termination condition  ---------------------------------------
       size_t total_active_vertices = num_active_vertices;
       rmi.all_reduce(total_active_vertices);
+      print_this_round = print_this_round || total_active_vertices > 0;
       if (rmi.procid() == 0 && print_this_round)
         logstream(LOG_EMPH)
           << "\tActive vertices: " << total_active_vertices << std::endl;
 
+      if(total_active_vertices == 0 ) {
+        sleep(500);
+      }
+
+      /**
+        * Check if there comes new input files every 2 seconds
+        * if there are new files, merge the data of the new files into our graph
+        */
+      if (timer::approx_time_millis() - start_time_millis > cycletime) {
+        if (stat(dirname.c_str(), &current_dir_info) < 0){
+          logstream(LOG_EMPH)<<"cann't get the information of the input directory"<<dirname<<std::endl;
+          logstream(LOG_EMPH)<<"we break the while loop"<<std::endl;
+          break;
+        }
+        start_time_millis = timer::approx_time_millis();
+        if(current_dir_info.st_ctime != previous_dir_info.st_ctime){
+          graph.load_format(dirname, format);
+          previous_dir_info = current_dir_info;
+        }
+      }
 
         // Add by Liang Yunlong
         //never leave the while loop
