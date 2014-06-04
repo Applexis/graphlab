@@ -2217,6 +2217,9 @@ namespace graphlab {
         }
         if(has_been_read)
           continue;
+
+        // here should cout something to avoid crash.
+        logstream(LOG_INFO) << "[debug]The " << i << "st file is readed" << std::endl;
         previous_graph_files.push_back(graph_files[i]);
 
         if ((parallel_ingress && (i % rpc.numprocs() == rpc.procid()))
