@@ -83,6 +83,9 @@ namespace graphlab {
   private:
     class edge_iterator;
 
+    set<lvid_type> crSet;
+    set<lvid_type> bSet;
+
   public:
     typedef boost::iterator_range<edge_iterator> edge_list_type;
 
@@ -142,6 +145,53 @@ namespace graphlab {
         return edges.size();
     } // end of num edges
 
+    //add by cyc
+    void getIncrementalVertice() {
+      set<lvid_type>::iterator iter;
+      queue<lvid_type> q;
+      for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
+        q.push(*iter);
+      }
+      //get cr set            
+      while(!q.empty) {
+        lvid_type x = q.front();
+        q.pop();
+        vertex_type v(x);
+        edge_list_type vers = v.out_edges();
+        foreach(edge_type e, vers) {
+          lvid_type out = e.target().id();
+          if(crSet.find(out) == crSet.end()) {
+            q.push(out);
+            crSet.insert(out);
+          }
+          // fout << (lvid_type)i << ", " << e.target().id() << "\n";
+          // ASSERT_TRUE(fout.good());
+        }
+      }
+      //get b set
+      for(size_t i = 0; i < num_vertices(); i++) {
+        if(crSet.find((lvid_type)i) != crSet.end())
+          continue;
+        vertex_type v(i);
+        edge_list_type vers = v.out_edges();
+        foreach(edge_type e, vers) {
+          lvid_type out = e.target().id();
+          if(crSet.find(out) != crSet.end()) {
+            bSet.insert(out);
+            break;
+          }
+          // fout << (lvid_type)i << ", " << e.target().id() << "\n";
+          // ASSERT_TRUE(fout.good());
+        }
+      }
+      for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
+        vset_to_activate.dynamic_set_lvid(*iter);
+      }
+      for (iter=bSet.begin(); iter!=bSet.end(); iter++) {
+        vset_to_activate.dynamic_set_lvid(*iter);
+      }
+      
+    }
 
     /**
      * \brief Creates a vertex containing the vertex data and returns the id
@@ -159,7 +209,14 @@ namespace graphlab {
         vertices.resize(vid+1);
       }
       vertices[vid] = vdata;
+
+      //made by cyc
+      crSet.insert(vid);
+/*
+// made by cyc
       vset_to_activate.dynamic_set_lvid(vid);
+
+      */
       std::cout << "[dynamic_local_graph]a vertex is added, id is:" << vid << std::endl;
     } // End of add vertex;
 
@@ -354,6 +411,11 @@ namespace graphlab {
       _csr_storage.meminfo(std::cerr);
       _csc_storage.meminfo(std::cerr);
 #endif
+
+    //add by cyc
+      getIncrementalVertice();
+
+      //
     } // End of finalize
 
 
