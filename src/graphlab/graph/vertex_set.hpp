@@ -130,6 +130,22 @@ class vertex_set {
     }
 
     /**
+     * @author Applex.
+     * Sets a bit in the bitset with local threading
+     * synchronization. vertex set must be made explicit. This call does not
+     * perform remote synchronization and addititional distributed
+     * synchronization calls must be made to restore datastructure invariants.
+     * if the size of localvset is not enough, resize it.
+     */
+    inline void dynamic_set_lvid(lvid_type lvid) {
+      ASSERT_FALSE(lazy);
+      if (lvid >= localvset.size()) {
+        localvset.resize(localvset.size() + 1);
+      }
+      localvset.set_bit(lvid);
+    }
+
+    /**
      * \internal
      * Makes the internal representation explicit by clearing the lazy flag
      * and filling the bitset.

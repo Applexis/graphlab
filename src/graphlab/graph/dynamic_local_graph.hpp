@@ -53,6 +53,7 @@
 #include <graphlab/util/generics/counting_sort.hpp>
 #include <graphlab/util/generics/dynamic_csr_storage.hpp>
 #include <graphlab/parallel/atomic.hpp>
+#include <graphlab/graph/vertex_set.hpp>
 
 #include <graphlab/logger/logger.hpp>
 #include <graphlab/logger/assertions.hpp>
@@ -80,6 +81,7 @@ namespace graphlab {
 
   private:
     class edge_iterator;
+    vertex_set vset_to_activate;
 
   public:
     typedef boost::iterator_range<edge_iterator> edge_list_type;
@@ -110,6 +112,13 @@ namespace graphlab {
       return true;
     }
 
+    void init_vset() {
+      vset_to_activate.is_complete_set = false;
+      vset_to_activate.lazy = false;
+      vset_to_activate.localvset.resize(num_vertices());
+      vset_to_activate.localvset.clear();
+    }
+
     /**
      * \brief Resets the local_graph state.
      */
@@ -126,7 +135,7 @@ namespace graphlab {
     /** \brief Get the number of vertices */
     size_t num_vertices() const {
       return vertices.size();
-    } // end of num vertices
+    } // end of num num_verticess
 
     /** \brief Get the number of edges */
     size_t num_edges() const {
@@ -150,6 +159,8 @@ namespace graphlab {
         vertices.resize(vid+1);
       }
       vertices[vid] = vdata;
+      vset_to_activate.dynamic_set_lvid(vid);
+      std::cout << "[debug]a vertex is added, id is:" << vid << std::endl;
     } // End of add vertex;
 
     void reserve(size_t num_vertices) {

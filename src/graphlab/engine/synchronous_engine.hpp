@@ -1354,6 +1354,8 @@ namespace graphlab {
         if(current_dir_info.st_ctime != previous_dir_info.st_ctime){
           graph.load_format(dirname, format);
           previous_dir_info = current_dir_info;
+          graph.finalize();
+          signal_all();
         }
       }
 
