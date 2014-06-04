@@ -1288,8 +1288,16 @@ namespace graphlab {
  * used in graph.save("path/prefix", pagerank_writer()) to save the graph.
  */
 
+// The vertex data is just the pagerank value (a float)
+typedef float vertex_data_type;
+
+// There is no edge data in the pagerank application
+typedef graphlab::empty edge_data_type;
+
+// The graph type is determined by the vertex and edge data types
+typedef graphlab::distributed_graph<vertex_data_type, edge_data_type> graph_type;
 struct pagerank_writer {
-  std::string save_vertex(vertex_type v) {
+  std::string save_vertex(graph_type::vertex_type v) {
     std::stringstream strm;
     strm << v.id() << "\t" << v.data() << "\n";
     return strm.str();

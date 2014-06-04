@@ -3208,7 +3208,7 @@ namespace graphlab {
 
     lock_manager_type lock_manager;
 
-    std::string graph_file_dir;
+    std::string graph_files_dir;
 
     void set_ingress_method(const std::string& method,
         size_t bufsize = 50000, bool usehash = false, bool userecent = false) {
