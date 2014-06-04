@@ -2205,7 +2205,7 @@ namespace graphlab {
             break;
           }
         }
-        
+
         if(has_been_read) {
           continue;
         }
@@ -2366,6 +2366,7 @@ namespace graphlab {
      *  \param line_parser A user defined parsing function
      */
     void load(std::string prefix, line_parser_type line_parser) {
+      graph_files_dir = prefix;
       rpc.full_barrier();
       if (prefix.length() == 0) return;
       local_graph.init_vset();
@@ -3205,8 +3206,9 @@ namespace graphlab {
     /** Command option to disable parallel ingress. Used for simulating single node ingress */
     bool parallel_ingress;
 
-
     lock_manager_type lock_manager;
+
+    std::string graph_file_dir;
 
     void set_ingress_method(const std::string& method,
         size_t bufsize = 50000, bool usehash = false, bool userecent = false) {

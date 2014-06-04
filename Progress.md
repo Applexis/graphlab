@@ -19,3 +19,10 @@ sync类里有个Main Program，就是如何做gather apply scatter的过程
 ### 关于Csr_Storage:
 
 dynamic_csr_storage已经实现了insert方法。所以我觉得里面应该维护一个变量：需要计算（或者正在计算）的节点数组。在insert的时候和算收敛之后都需要维护这个数组。
+
+
+---
+
+6.4
+
+现在已经能够增量激活节点了。
