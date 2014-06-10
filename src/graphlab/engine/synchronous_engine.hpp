@@ -377,6 +377,13 @@ namespace graphlab {
     */
     bool use_cache;
 
+   /* 
+    * \brief When continues is enabled, the loop will not exit. It will 
+    * read from the graph dir per 2 seconds. Once the computation is
+    * done, the result will be output.
+    */
+    bool continues;
+
     /**
      * \brief A snapshot is taken every this number of iterations.
      * If snapshot_interval == 0, a snapshot is only taken before the first
@@ -1021,6 +1028,7 @@ namespace graphlab {
     std::vector<std::string> keys = opts.get_engine_args().get_option_keys();
     per_thread_compute_time.resize(opts.get_ncpus());
     use_cache = false;
+    continues = false;
     foreach(std::string opt, keys) {
       if (opt == "max_iterations") {
         opts.get_engine_args().get_option("max_iterations", max_iterations);
@@ -1052,6 +1060,12 @@ namespace graphlab {
         if (rmi.procid() == 0)
           logstream(LOG_EMPH) << "Engine Option: sched_allv = "
             << sched_allv << std::endl;
+      } else if (opt == "continues") {
+        opts.get_engine_args().get_option("continues", continues);
+        if (rmi.procid() == 0) {
+          logstream(LOG_EMPH) << "Engine Option: continues = "
+            << continues << std::endl;
+        }
       } else {
         logstream(LOG_FATAL) << "Unexpected Engine Option: " << opt << std::endl;
       }
@@ -1326,7 +1340,7 @@ namespace graphlab {
 
 
 
-
+    // If '--continues=yes' is set, the main loop will not exit.
     // Add by Liang Yunlong  =========================================================//
     size_t start_time_millis = timer::approx_time_millis();
     size_t cycletime = 2000;
@@ -1335,7 +1349,6 @@ namespace graphlab {
     struct stat previous_dir_info;
     struct stat current_dir_info;
     std::string saveprefix = "/home/hadoop/out";
-    //End of Add=======================================================================//
 
 
 
@@ -1410,21 +1423,19 @@ namespace graphlab {
 
       //Add by Liang Yunlong
       if(total_active_vertices == 0 ) {
-/*        graph.save(saveprefix, pagerank_writer(),
-               false,    // do not gzip
-               true,     // save vertices
-               false);   // do not save edges
-*/
-        sleep(500);
-
- //       break;
+        if (!continues) {
+          termination_reason = execution_status::TASK_DEPLETION;
+          break;
+        } else {
+          sleep(500);
+        }
       }
 
       /**
         * Check if there comes new input files every 2 seconds
         * if there are new files, merge the data of the new files into our graph
         */
-      if (timer::approx_time_millis() - start_time_millis > cycletime) {
+      if (continues && timer::approx_time_millis() - start_time_millis > cycletime) {
         if (stat(dirname.c_str(), &current_dir_info) < 0){
           logstream(LOG_EMPH)<<"cann't get the information of the input directory"<<dirname<<std::endl;
           logstream(LOG_EMPH)<<"we break the while loop"<<std::endl;
@@ -1439,15 +1450,6 @@ namespace graphlab {
           signal_vset(graph.local_vset_to_activate());
         }
       }
-
-        // Add by Liang Yunlong
-        //never leave the while loop
-
-/*      if(total_active_vertices == 0 ) {
-        termination_reason = execution_status::TASK_DEPLETION;
-        break;
-      }
-*/
 
       // Execute gather operations-------------------------------------------
       // Execute the gather operation for all vertices that are active
