@@ -384,6 +384,18 @@ namespace graphlab {
     */
     bool continues;
 
+    std::string continues_dirname;
+
+    std::string saveprefix;
+
+    // If '--continues=yes' is set, the main loop will not exit.
+    // Add by Liang Yunlong  =========================================================//
+    size_t start_time_millis;
+    size_t cycletime;
+    std::string format;
+    struct stat previous_dir_info;
+    struct stat current_dir_info;
+
     /**
      * \brief A snapshot is taken every this number of iterations.
      * If snapshot_interval == 0, a snapshot is only taken before the first

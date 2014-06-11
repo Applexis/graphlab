@@ -311,6 +311,17 @@ namespace graphlab {
       }
       return true;
     }
+
+    template <typename Graph>
+    bool graphdel_parser(Graph& graph, const std::string& srcfilename,
+                    const std::string& str) {
+      if (str.empty()) return true;
+      size_t vertex;
+      vertex = strtoul(str.c_str(), NULL, 10);
+      graph.delete_vertex(vertex);
+      return true;
+    }
+
     
   } // namespace builtin_parsers
 } // namespace graphlab

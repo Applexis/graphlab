@@ -151,6 +151,16 @@ namespace graphlab {
 #endif
     } // end of add vertex
 
+    /** \brief Delete an vertex to the ingress object. */
+    virtual void delete_vertex(vertex_id_type vid)  { 
+      const procid_t owning_proc = graph_hash::hash_vertex(vid) % rpc.numprocs();
+/*      const vertex_buffer_record record(vid, vdata);
+#ifdef _OPENMP
+      vertex_exchange.send(owning_proc, record, omp_get_thread_num());
+#else
+      vertex_exchange.send(owning_proc, record);
+#endif*/
+    } // end of add vertex
 
     void set_duplicate_vertex_strategy(
         boost::function<void(vertex_data_type&,

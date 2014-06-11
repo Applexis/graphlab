@@ -831,6 +831,28 @@ namespace graphlab {
       return true;
     }
 
+    bool delete_vertex(const vertex_id_type& vid) {
+#ifndef USE_DYNAMIC_LOCAL_GRAPH
+      if(finalized) {
+        logstream(LOG_FATAL)
+          << "\n\tAttempting to delete a vertex to a finalized graph."
+          << "\n\tVertices cannot be added to a graph after finalization."
+          << std::endl;
+      }
+#else
+      finalized = false;
+#endif
+      if(vid == vertex_id_type(-1)) {
+        logstream(LOG_ERROR)
+          << "\n\tDeleting a vertex with id -1 is not allowed."
+          << "\n\tThe -1 vertex id is reserved for internal use."
+          << std::endl;
+        return false;
+      }
+      ASSERT_NE(ingress_ptr, NULL);
+      ingress_ptr->delete_vertex(vid);
+      return true;
+    }
 
     /**
      * \brief Creates an edge connecting vertex source, and vertex target().
@@ -2467,6 +2489,9 @@ namespace graphlab {
          load_direct(path,&graph_type::load_bintsv4_from_stream);
       } else if (format == "bin") {
          load_binary(path);
+      } else if (format == "graphdel") {
+         line_parser = builtin_parsers::graphdel_parser<distributed_graph>;
+         load(path, line_parser);
       } else {
         logstream(LOG_ERROR)
           << "Unrecognized Format \"" << format << "\"!" << std::endl;
