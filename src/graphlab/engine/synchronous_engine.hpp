@@ -386,6 +386,8 @@ namespace graphlab {
 
     std::string continues_dirname;
 
+    std::string continues_delete_dirname;
+
     std::string saveprefix;
 
     // If '--continues=yes' is set, the main loop will not exit.
@@ -394,7 +396,7 @@ namespace graphlab {
     size_t cycletime;
     std::string format;
     struct stat previous_dir_info;
-    struct stat current_dir_info;
+    struct stat previous_delete_dir_info;
 
     /**
      * \brief A snapshot is taken every this number of iterations.
@@ -1041,6 +1043,12 @@ namespace graphlab {
     per_thread_compute_time.resize(opts.get_ncpus());
     use_cache = false;
     continues = false;
+    continues_dirname = "/home/hadoop/data";
+    continues_delete_dirname = "/home/hadoop/data_delete";
+    saveprefix == "/home/hadoop/out";
+    format = "tsv";
+    start_time_millis = timer::approx_time_millis();
+    cycletime = 2000;
     foreach(std::string opt, keys) {
       if (opt == "max_iterations") {
         opts.get_engine_args().get_option("max_iterations", max_iterations);
@@ -1078,9 +1086,26 @@ namespace graphlab {
           logstream(LOG_EMPH) << "Engine Option: continues = "
             << continues << std::endl;
         }
+      } else if (opt == "dirname") {
+        opts.get_engine_args().get_option("dirname", continues_dirname);
+        if (rmi.procid() == 0) {
+          logstream(LOG_EMPH) << "Engine Option: continues_dirname = "
+            << continues_dirname << std::endl;
+        }
+      } else if (opt == "saveprefix") {
+        opts.get_engine_args().get_option("saveprefix", saveprefix);
+        if (rmi.procid() == 0) {
+          logstream(LOG_EMPH) << "Engine Option: saveprefix = "
+            << saveprefix<< std::endl;
+        }
       } else {
         logstream(LOG_FATAL) << "Unexpected Engine Option: " << opt << std::endl;
       }
+    }
+
+    if (continues) {
+      stat(continues_dirname.c_str(), &previous_dir_info);
+      stat(continues_delete_dirname.c_str(), &previous_delete_dir_info);
     }
 
     if (snapshot_interval >= 0 && snapshot_path.length() == 0) {
@@ -1350,22 +1375,8 @@ namespace graphlab {
                         << std::endl;
     }
 
-
-
-    // If '--continues=yes' is set, the main loop will not exit.
-    // Add by Liang Yunlong  =========================================================//
-    size_t start_time_millis = timer::approx_time_millis();
-    size_t cycletime = 2000;
-    std::string dirname = "/home/hadoop/data";
-    std::string format = "tsv";
-    struct stat previous_dir_info;
     struct stat current_dir_info;
-    std::string saveprefix = "/home/hadoop/out";
-
-
-
-
-
+    struct stat current_delete_dir_info;
     // Program Main loop ====================================================
     while(iteration_counter < max_iterations && !force_abort ) {
 
@@ -1448,19 +1459,24 @@ namespace graphlab {
         * if there are new files, merge the data of the new files into our graph
         */
       if (continues && timer::approx_time_millis() - start_time_millis > cycletime) {
-        if (stat(dirname.c_str(), &current_dir_info) < 0){
-          logstream(LOG_EMPH)<<"cann't get the information of the input directory"<<dirname<<std::endl;
+        start_time_millis = timer::approx_time_millis();
+        if (stat(continues_dirname.c_str(), &current_dir_info) < 0){
+          logstream(LOG_EMPH)<<"cann't get the information of the input directory"<<continues_dirname<<std::endl;
           logstream(LOG_EMPH)<<"we break the while loop"<<std::endl;
           break;
         }
-        start_time_millis = timer::approx_time_millis();
         if(current_dir_info.st_ctime != previous_dir_info.st_ctime){
-          graph.load_format(dirname, format);
+          graph.load_format(continues_dirname, format);
           previous_dir_info = current_dir_info;
-          graph.finalize();
-          // signal_all();
-          signal_vset(graph.local_vset_to_activate());
         }
+        
+        stat(continues_delete_dirname.c_str(), &current_dir_info);
+        if (current_delete_dir_info.st_ctime != previous_delete_dir_info.st_ctime) {
+          graph.load_format(continues_delete_dirname, "graphdel");
+          previous_delete_dir_info = current_delete_dir_info;
+        }
+        graph.finalize();
+        signal_vset(graph.local_vset_to_activate());
       }
 
       // Execute gather operations-------------------------------------------
