@@ -1106,6 +1106,8 @@ namespace graphlab {
     if (continues) {
       stat(continues_dirname.c_str(), &previous_dir_info);
       stat(continues_delete_dirname.c_str(), &previous_delete_dir_info);
+      previous_dir_info.st_ctime = 0;
+      previous_delete_dir_info.st_ctime = 0;
     }
 
     if (snapshot_interval >= 0 && snapshot_path.length() == 0) {
@@ -1465,18 +1467,31 @@ namespace graphlab {
           logstream(LOG_EMPH)<<"we break the while loop"<<std::endl;
           break;
         }
+        stat(continues_delete_dirname.c_str(), &current_delete_dir_info);
+
+        if(current_dir_info.st_ctime != previous_dir_info.st_ctime || current_delete_dir_info.st_ctime != previous_delete_dir_info.st_ctime) {
+          logstream(LOG_INFO) << "[debug]should init local vset" << std::endl;
+          graph.init_local_vset();
+        }
+
         if(current_dir_info.st_ctime != previous_dir_info.st_ctime){
+          logstream(LOG_INFO) << "[debug]new folder is read" << std::endl;
           graph.load_format(continues_dirname, format);
-          previous_dir_info = current_dir_info;
         }
         
-        stat(continues_delete_dirname.c_str(), &current_dir_info);
         if (current_delete_dir_info.st_ctime != previous_delete_dir_info.st_ctime) {
+          logstream(LOG_INFO) << "[debug]delete folder is read" << std::endl;
           graph.load_format(continues_delete_dirname, "graphdel");
-          previous_delete_dir_info = current_delete_dir_info;
         }
-        graph.finalize();
-        signal_vset(graph.local_vset_to_activate());
+
+        if(current_dir_info.st_ctime != previous_dir_info.st_ctime || current_delete_dir_info.st_ctime != previous_delete_dir_info.st_ctime) {
+          graph.finalize();
+          signal_vset(graph.local_vset_to_activate());
+          previous_dir_info = current_dir_info;
+          previous_delete_dir_info = current_delete_dir_info;
+        } else {
+          continue;
+        }
       }
 
       // Execute gather operations-------------------------------------------

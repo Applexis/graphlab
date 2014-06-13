@@ -154,6 +154,13 @@ std::cout<<"[dynamic_local_graph]vset is inited" << std::endl;
      * the first vertex having id 0.
      */
     void add_vertex(lvid_type vid, const VertexData& vdata = VertexData() ) {
+      if (vdata == -1) {
+        if (vid < vertices.size()) {
+          // should delete vid.
+          logstream(LOG_INFO) << "[debug]a vertex should be delete, which lid is " << vid << std::endl;
+        }
+      }
+
       if(vid >= vertices.size()) {
         // Enable capacity doubling if resizing beyond capacity
         if(vid >= vertices.capacity()) {
@@ -167,11 +174,7 @@ std::cout<<"[dynamic_local_graph]vset is inited" << std::endl;
 
       //made by cyc
       crSet.insert(vid);
-/*
-// made by cyc
-      vset_to_activate.dynamic_set_lvid(vid);
 
-      */
       std::cout << "[dynamic_local_graph]a vertex is added, id is:" << vid << std::endl;
     } // End of add vertex;
 

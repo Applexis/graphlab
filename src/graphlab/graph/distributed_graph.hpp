@@ -2236,6 +2236,7 @@ namespace graphlab {
         graph_files.push_back(graph_files_listed[i]);
         previous_graph_files.push_back(graph_files_listed[i]);
       }
+      logstream(LOG_INFO) << "file count to read: " << graph_files.size() << std::endl;
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -2391,7 +2392,6 @@ namespace graphlab {
       graph_files_dir = prefix;
       rpc.full_barrier();
       if (prefix.length() == 0) return;
-      local_graph.init_vset();
       if(boost::starts_with(prefix, "hdfs://")) {
         load_from_hdfs(prefix, line_parser);
       } else {
@@ -2399,6 +2399,10 @@ namespace graphlab {
       }
       rpc.full_barrier();
     } // end of load
+
+    void init_local_vset() {
+      local_graph.init_vset(); 
+    }
 
     /**
      * \brief Constructs a synthetic power law graph. Must be called on

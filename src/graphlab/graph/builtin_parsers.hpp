@@ -318,7 +318,8 @@ namespace graphlab {
       if (str.empty()) return true;
       size_t vertex;
       vertex = strtoul(str.c_str(), NULL, 10);
-      graph.delete_vertex(vertex);
+      logstream(LOG_INFO) << "[parser] vertex: " << vertex << " is deleted" << std::endl;
+      graph.add_vertex(vertex, -1);
       return true;
     }
 

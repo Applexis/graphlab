@@ -69,15 +69,6 @@ namespace graphlab {
     }; 
     buffered_exchange<vertex_buffer_record> vertex_exchange;
 
-    /// Temporary buffers used to store vertex to be deleted on ingress
-    struct vertex_delete_buffer_record {
-      vertex_id_type vid;
-      vertex_delete_buffer_record(vertex_id_type vid = -1) : vid(vid) { }
-      void load(iarchive& arc) { arc >> vid; }
-      void save(oarchive& arc) const { arc << vid; }
-    }; 
-    buffered_exchange<vertex_delete_buffer_record> vertex_delete_exchange;
-
     /// Temporar buffers used to store edge data on ingress
     struct edge_buffer_record {
       vertex_id_type source, target;
@@ -126,10 +117,8 @@ namespace graphlab {
 #ifdef _OPENMP
       vertex_exchange(dc, omp_get_max_threads()), 
       edge_exchange(dc, omp_get_max_threads()),
-      vertex_delete_exchange(dc, omp_get_max_threads()), 
 #else
       vertex_exchange(dc), edge_exchange(dc),
-      vertex_delete_exchange(dc),
 #endif
       edge_decision(dc) {
       rpc.barrier();
@@ -159,17 +148,6 @@ namespace graphlab {
       vertex_exchange.send(owning_proc, record, omp_get_thread_num());
 #else
       vertex_exchange.send(owning_proc, record);
-#endif
-    } // end of add vertex
-
-    /** \brief Delete an vertex to the ingress object. */
-    virtual void delete_vertex(vertex_id_type vid)  { 
-      const procid_t owning_proc = graph_hash::hash_vertex(vid) % rpc.numprocs();
-      const vertex_delete_buffer_record record(vid);
-#ifdef _OPENMP
-      vertex_delete_exchange.send(owning_proc, record, omp_get_thread_num());
-#else
-      vertex_delete_exchange.send(owning_proc, record);
 #endif
     } // end of add vertex
 
@@ -228,9 +206,6 @@ namespace graphlab {
 
       typedef typename buffered_exchange<vertex_buffer_record>::buffer_type 
         vertex_buffer_type;
-
-      typedef typename buffered_exchange<vertex_delete_buffer_record>::buffer_type 
-        vertex_delete_buffer_type;
 
       /**
        * \internal
