@@ -158,6 +158,38 @@ std::cout<<"[dynamic_local_graph]vset is inited" << std::endl;
         if (vid < vertices.size()) {
           // should delete vid.
           logstream(LOG_INFO) << "[debug]a vertex should be delete, which lid is " << vid << std::endl;
+
+          vertex_type v(*this, vid);
+          // Mark the out vertices to be activated.
+          edge_list_type ls = v.out_edges();
+          foreach(edge_type e, ls) {
+            vset_to_activate.dynamic_set_lvid(e.target().id());
+          }
+
+          // Delete edges from the edge vector.
+          int offset = 0;
+
+          foreach(edge_type e, ls) {
+              std::cout << "The edge will be deleted, vid: " << e.id() << "\n";
+              edges.erase(edges.begin() + e.id() - offset);
+              offset ++;
+          }
+
+          edge_list_type is = v.in_edges();
+          offset = 0;
+          foreach(edge_type e, is) {
+              std::cout << "The edge will be deleted, vid: " << e.id() << "\n";
+              edges.erase(edges.begin() + e.id() - offset);
+              offset ++;
+          }
+
+          // Delete the edges from csr and csc storage.
+          _csr_storage.delete_(vid); 
+          _csc_storage.delete_(vid); 
+          std::cout << "[debug]After delete, the in edges count is: " << v.num_in_edges() << std::endl;
+          std::cout << "[debug]After delete, the out edges count is: " << v.num_out_edges() << std::endl;
+
+          return;
         }
       }
 

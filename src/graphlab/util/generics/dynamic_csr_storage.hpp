@@ -113,6 +113,21 @@ namespace graphlab {
      inline const_iterator end(size_t id) const {
        return (id+1) < num_keys() ? value_ptrs[id+1] : values.end();
      }
+     
+     ////////////////////////// Deletion API ////////////////////////
+     /// Delete values for a given key.
+     template <typename idtype>
+     void delete_(const idtype& key) {
+       // iterator to the insertion position
+       iterator iter_end = end(key);
+       iterator iter_begin = begin(key);
+       std::pair<iterator, iterator> iter_pair = values.delete_(iter_begin, iter_end);
+       value_ptrs[key] = iter_pair.first;
+       if (key + 1 < value_ptrs.size()) {
+         value_ptrs[key + 1] = iter_pair.second;
+       }
+     }
+
 
      ////////////////////////// Insertion API ////////////////////////
      /// Insert a new value to a given key

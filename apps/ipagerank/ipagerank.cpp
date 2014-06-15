@@ -146,19 +146,21 @@ int main(int argc, char** argv) {
 
   // Running The Engine -------------------------------------------------------
   graphlab::omni_engine<pagerank> engine(dc, graph, exec_type, clopts);
+  
+  // Save the final graph -----------------------------------------------------
+  if (saveprefix != "") {
+    graph.registe_saver(saveprefix, pagerank_writer(),
+               false,    // do not gzip
+               true,     // save vertices
+               false);   // do not save edges
+  }
+
   engine.signal_all();
   engine.start();
   const float runtime = engine.elapsed_seconds();
   dc.cout() << "Finished Running engine in " << runtime
             << " seconds." << std::endl;
 
-  // Save the final graph -----------------------------------------------------
-  if (saveprefix != "") {
-    graph.save(saveprefix, pagerank_writer(),
-               false,    // do not gzip
-               true,     // save vertices
-               false);   // do not save edges
-  }
 
   // Tear-down communication layer and quit -----------------------------------
   graphlab::mpi_tools::finalize();

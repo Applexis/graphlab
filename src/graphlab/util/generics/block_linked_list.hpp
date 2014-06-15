@@ -232,6 +232,59 @@ namespace graphlab {
        return const_iterator(NULL, 0);
      }
 
+   //////////////////// Deletion API ///////////////////////// 
+   /*
+    * Delete values from iterator A to iterator B
+    * Repack 
+    */
+   std::pair<iterator, iterator> delete_(iterator iter_a, iterator iter_b) {
+     uint32_t offset_a = iter_a.get_offset();
+     uint32_t offset_b = iter_b.get_offset();
+     blocktype* bptr_a = iter_a.get_blockptr();
+     blocktype* bptr_b = iter_b.get_blockptr();
+     bool is_end = bptr_b == NULL;
+
+     typedef std::pair<iterator, iterator> ret_type;
+     iterator begin_del_iter = iter_a;
+     iterator end_del_iter = iter_b;
+
+     if (bptr_a == NULL && bptr_b == NULL) {
+       logstream(LOG_EMPH) << "[Delete]The iter a is null, exit" << std::endl;
+       return ret_type(begin_del_iter, end_del_iter);
+     }
+
+     if (bptr_a == bptr_b) {
+         std::cout << "a == b" << std::endl;
+         std::cout << "a size: " << bptr_a->_size << std::endl;
+         std::cout << "b size: " << bptr_b->_size << std::endl;
+         std::cout << "a offset: " << offset_a << std::endl; 
+         std::cout << "b offset: " << offset_b << std::endl;
+         std::cout << "a next:" << bptr_a->_next << std::endl;
+         int nmove = offset_b - offset_a;
+         bptr_a->_size = bptr_a->_size - nmove; 
+         std::copy(bptr_b->values + offset_b, bptr_b->values + offset_b + nmove, bptr_a->values + offset_a); 
+         end_del_iter = begin_del_iter;
+     } else if (!is_end) {
+         std::cout << "a size: " << bptr_a->_size << std::endl;
+         std::cout << "b size: " << bptr_b->_size << std::endl;
+         std::cout << "a offset: " << offset_a << std::endl; 
+         std::cout << "b offset: " << offset_b << std::endl;
+         std::cout << "a next:" << bptr_a->_next << std::endl;
+       bptr_a->_size = offset_a;
+       //std::copy(bptr_b->values + offset_b, bptr_b->values + bptr_b->_size, bptr_b->values);
+       //end_del_iter = iterator(bptr_b, 0);
+       bptr_b->_size = bptr_b->_size - offset_b;
+       bptr_a->_next = bptr_b; 
+     } else {
+         std::cout << "a size: " << bptr_a->_size << std::endl;
+         std::cout << "a offset: " << offset_a << std::endl; 
+         std::cout << "a next:" << bptr_a->_next << std::endl;
+       bptr_a->_size = offset_a;
+     }
+     std::cout << "success" << std::endl;
+     return ret_type(begin_del_iter, end_del_iter);
+   }
+
    //////////////////// Insertion API ///////////////////////// 
    /*
     * Insert value into the location of iter.

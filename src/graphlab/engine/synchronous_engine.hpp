@@ -1379,6 +1379,7 @@ namespace graphlab {
 
     struct stat current_dir_info;
     struct stat current_delete_dir_info;
+    bool saved = false;
     // Program Main loop ====================================================
     while(iteration_counter < max_iterations && !force_abort ) {
 
@@ -1452,8 +1453,14 @@ namespace graphlab {
           termination_reason = execution_status::TASK_DEPLETION;
           break;
         } else {
+          if (!saved) {
+            graph.do_save();
+            saved = true;
+          }
           sleep(500);
         }
+      } else {
+        saved = false; 
       }
 
       /**

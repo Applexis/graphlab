@@ -2112,6 +2112,38 @@ namespace graphlab {
     } // end of save
 
 
+    //template<typename Writer> Writer default_writer;
+    bool _gzip;
+    bool _save_vertex;
+    bool _save_edge;
+    size_t _files_per_machine;
+    std::string _prefix;
+
+    template<typename Writer>
+    void registe_saver(const std::string& prefix, Writer writer,
+              bool gzip = true, bool save_vertex = true, bool save_edge = true,
+              size_t files_per_machine = 4) {
+        //default_writer = writer;
+        _prefix = prefix;
+        _gzip = gzip;
+        _save_vertex = save_vertex;
+        _save_edge = save_edge;
+        _files_per_machine = files_per_machine;
+    } // end of save
+
+
+struct pagerank_writer {
+  std::string save_vertex(graph_type::vertex_type v) {
+    std::stringstream strm;
+    strm << v.id() << "\t" << v.data() << "\n";
+    return strm.str();
+  }
+  std::string save_edge(graph_type::edge_type e) { return ""; }
+}; // end of pagerank writer
+
+    void do_save() {
+        save(_prefix, pagerank_writer(), _gzip, _save_vertex, _save_edge, _files_per_machine);
+    } // end of save
 
     /**
      * \brief Saves the graph in the specified format. This function should be
