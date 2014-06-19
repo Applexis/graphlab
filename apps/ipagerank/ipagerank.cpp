@@ -130,6 +130,7 @@ int main(int argc, char** argv) {
   // Build the graph ----------------------------------------------------------
   graph_type graph(dc, clopts);
   dc.cout() << "Loading graph in format: "<< format << std::endl;
+          graph.init_local_vset();
   graph.load_format(graph_dir, format);
   // must call finalize before querying the graph
   graph.finalize();
@@ -143,19 +144,31 @@ int main(int argc, char** argv) {
   graphlab::omni_engine<pagerank> engine(dc, graph, exec_type, clopts);
   
   // Save the final graph -----------------------------------------------------
+  bool continues = false;
+  clopts.get_engine_args().get_option("continues", continues);
   if (saveprefix != "") {
-    graph.registe_saver(saveprefix, pagerank_writer(),
-               false,    // do not gzip
-               true,     // save vertices
-               false);   // do not save edges
+      if (continues) {
+          graph.registe_saver(saveprefix, pagerank_writer(),
+                  false,    // do not gzip
+                  true,     // save vertices
+                  false);   // do not save edges
+      }
   }
 
   engine.signal_all();
   engine.start();
   const float runtime = engine.elapsed_seconds();
   dc.cout() << "Finished Running engine in " << runtime
-            << " seconds." << std::endl;
+      << " seconds." << std::endl;
 
+  if (saveprefix != "") {
+      if (!continues) {
+          graph.save(saveprefix, pagerank_writer(),
+                  false,    // do not gzip
+                  true,     // save vertices
+                  false);   // do not save edges
+      }
+  }
 
   // Tear-down communication layer and quit -----------------------------------
   graphlab::mpi_tools::finalize();

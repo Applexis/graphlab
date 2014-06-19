@@ -244,7 +244,8 @@ print_edges();
 
       //made by cyc
       crSet.insert(vid);
-
+      vertex_type nv(*this, vid);
+      nv.data() = 1;
       //std::cout << "[dynamic_local_graph]a vertex is added, id is:" << vid << std::endl;
     } // End of add vertex;
 
@@ -281,8 +282,9 @@ crSet.insert(target);
         ASSERT_MSG(source != target, "Attempting to add self edge!");
       }
 
-      if(source >= vertices.size() || target >= vertices.size())
+      if(source >= vertices.size() || target >= vertices.size()) {
         add_vertex(std::max(source, target));
+      }
 
       // Add the edge to the set of edge data (this copies the edata)
       edge_buffer.add_edge(source, target, edata);

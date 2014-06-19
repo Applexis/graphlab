@@ -1350,6 +1350,7 @@ namespace graphlab {
 // The vertex data is just the pagerank value (a float)
 
 
+
   template<typename VertexProgram> execution_status::status_enum
   synchronous_engine<VertexProgram>::start() {
     if (vlocks.size() != graph.num_local_vertices())
@@ -1499,6 +1500,7 @@ namespace graphlab {
 
         if(current_dir_info.st_ctime != previous_dir_info.st_ctime || current_delete_dir_info.st_ctime != previous_delete_dir_info.st_ctime) {
           graph.finalize();
+          //std::cout << "[vset size]: " << graph.vertex_set_size(graph.local_vset_to_activate());
           signal_vset(graph.local_vset_to_activate());
           previous_dir_info = current_dir_info;
           previous_delete_dir_info = current_delete_dir_info;
