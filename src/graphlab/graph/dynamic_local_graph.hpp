@@ -147,6 +147,21 @@ std::cout<<"[dynamic_local_graph]vset is inited" << std::endl;
     size_t num_edges() const {
         return edges.size();
     } // end of num edges
+    void print_edges() {
+        std::cout << "------------" << std::endl;
+        std::cout << "[Print] print all edges:" << std::endl;
+      for (size_t i = 0; i < vertices.size(); i++) {
+          vertex_type tv(*this, i);
+          std::cout << "vid: " << i << std::endl;
+          foreach(edge_type e, tv.in_edges()) {
+              std::cout << e.source().id() << " -> " << e.target().id() << std::endl;
+          }
+          foreach(edge_type e, tv.out_edges()) {
+              std::cout << e.source().id() << " -> " << e.target().id() << std::endl;
+          }
+      }
+      std::cout << "------------" << std::endl;
+    }
 
     /**
      * \brief Creates a vertex containing the vertex data and returns the id
@@ -165,30 +180,95 @@ std::cout<<"[dynamic_local_graph]vset is inited" << std::endl;
           foreach(edge_type e, ls) {
             vset_to_activate.dynamic_set_lvid(e.target().id());
           }
-
+print_edges();
           // Delete edges from the edge vector.
           int offset = 0;
 
+          std::vector<int> keys_to_delete;
           foreach(edge_type e, ls) {
-              std::cout << "The edge will be deleted, vid: " << e.id() << "\n";
+              std::cout << "The out edge will be deleted, eid: " << e.id() << "\n";
               edges.erase(edges.begin() + e.id() - offset);
               offset ++;
+              keys_to_delete.push_back(e.target().id());
           }
-
-          edge_list_type is = v.in_edges();
+_csc_storage.print_block();
+          for (uint32_t i = 0; i < keys_to_delete.size(); i++) {
+            int k = keys_to_delete[i];
+              std::cout << "Then delete the out edges from out edge csr and csc storage" << std::endl;
+              _csr_storage.delete_(k, vid);
+              _csc_storage.delete_(k, vid);
+          }
+_csc_storage.print_block();
+          keys_to_delete.clear();
           offset = 0;
+          _csr_storage.repack();
+          _csc_storage.repack();
+_csc_storage.print_block();
+          edge_list_type is = v.in_edges();
           foreach(edge_type e, is) {
-              std::cout << "The edge will be deleted, vid: " << e.id() << "\n";
+              std::cout << "The in edge will be deleted, eid: " << e.id() << "\n";
               edges.erase(edges.begin() + e.id() - offset);
               offset ++;
+              keys_to_delete.push_back(e.source().id());
           }
-
+          for (uint32_t i = 0; i < keys_to_delete.size(); i++) {
+            int k = keys_to_delete[i];
+              std::cout << "Then delete the in edges from out edge csr and csc storage" << std::endl;
+              _csr_storage.delete_(k, vid);
+              _csc_storage.delete_(k, vid);
+          }
+/*int vo = 7;
+          for (int i = 0; i < 10; i ++) {
+            int n = 0;
+            vertex_type v1(*this, i);
+            foreach(edge_type e, v1.out_edges()) {
+                n ++;
+            }
+            std::cout << "vid: " << i << " has " << n << " in edges" << std::endl;
+          std::cout << _csc_storage.begin(i).get_offset() << std::endl;
+          std::cout << _csc_storage.end(i).get_offset() << std::endl;
+          std::cout << _csc_storage.begin(i).get_blockptr() << std::endl;
+          std::cout << _csc_storage.end(i).get_blockptr() << std::endl;
+            if (n == 0) {vo = i;}
+          }
+*/
+       //   vertex_type voo(*this, vo); 
+       //   std::cout << _csr_storage.begin(vo).get_offset() << std::endl;
+       //   std::cout << _csr_storage.end(vo).get_offset() << std::endl;
+       //   edge_list_type xx = voo.out_edges();
+       //   foreach(edge_type e, xx) {
+       //       std::cout << "[debug] out edge exits, source: " << e.source().id() << " target: " << e.target().id() << std::endl;
+       //   }
+       //   edge_list_type yy = voo.in_edges();
+       //   foreach(edge_type e, yy) {
+       //       std::cout << "[debug] in edge exits" << std::endl;
+       //   }
           // Delete the edges from csr and csc storage.
-          _csr_storage.delete_(vid); 
-          _csc_storage.delete_(vid); 
+          _csr_storage.delete_(vid, -1); 
+          _csc_storage.delete_(vid, -1); 
+          _csr_storage.repack();
+          _csc_storage.repack();
+print_edges();
+ /*         std::cout << "after repack: " << std::endl;
+          for (int i = 0; i < 10; i ++) {
+            int n = 0;
+            vertex_type v1(*this, i);
+            foreach(edge_type e, v1.out_edges()) {
+                n ++;
+            }
+            std::cout << "vid: " << i << " has " << n << " in edges" << std::endl;
+          std::cout << _csc_storage.begin(i).get_offset() << std::endl;
+          std::cout << _csc_storage.end(i).get_offset() << std::endl;
+          std::cout << _csc_storage.begin(i).get_blockptr() << std::endl;
+          std::cout << _csc_storage.end(i).get_blockptr() << std::endl;
+          }
+*/
           std::cout << "[debug]After delete, the in edges count is: " << v.num_in_edges() << std::endl;
           std::cout << "[debug]After delete, the out edges count is: " << v.num_out_edges() << std::endl;
 
+          //std::cout << "[vo]" << _csr_storage.begin(vid).get_blockptr() << " " <<_csr_storage.begin(vid).get_offset()  << std::endl;
+          //std::cout << "[vo]" << _csr_storage.end(vid).get_blockptr() << " " <<_csr_storage.end(vid).get_offset()  << std::endl;
+                            
           return;
         }
       }

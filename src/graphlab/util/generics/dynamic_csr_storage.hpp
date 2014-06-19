@@ -117,15 +117,91 @@ namespace graphlab {
      ////////////////////////// Deletion API ////////////////////////
      /// Delete values for a given key.
      template <typename idtype>
-     void delete_(const idtype& key) {
+     void delete_(const idtype& key, int target_vid) {
        // iterator to the insertion position
+       std::cout << "[csr storage] delete key: " << key << " with target vid: " << target_vid << std::endl;
        iterator iter_end = end(key);
        iterator iter_begin = begin(key);
+       if (iter_begin.get_blockptr() == NULL) {
+           std::cout << "\treturn" << std::endl;
+         return;
+       }
+       if (target_vid != -1) {
+           iterator ii = iter_begin;
+           while (ii != iter_end) {
+               std::pair<uint32_t, uint32_t> pp = *ii;
+               uint32_t vvid = pp.first;
+               std::cout << "vvid" << vvid << std::endl;
+               if (vvid == (unsigned int)target_vid) {
+                   std::cout << "\t an edge is found, now ii offset = " << ii.get_offset() << std::endl;
+                   iterator next = iterator(ii.get_blockptr(), ii.get_offset());
+                   next ++;
+                   
+                   std::cout << "\t next offset = " << next.get_offset() << std::endl;
+                   std::pair<iterator, iterator> iter_pair = values.delete_(ii, next);
+                   //value_ptrs[key] = iter_pair.first;
+                   // if it's the last in block list and there's no edges left, delete the key.
+                   std::cout << "\t after delete, the first is: " << iter_pair.first.get_blockptr() << ":" << iter_pair.first.get_offset() << std::endl;
+                   if (iter_pair.second.get_blockptr() == NULL) {
+                       std::cout << "\t iter second is null" << std::endl;
+                     if (ii == iter_begin) {
+                       value_ptrs.erase(value_ptrs.begin() + key);
+                       break;
+                     }
+                   }
+                   iterator first = iter_pair.first;
+                   iterator second = iter_pair.second;
+                   if (second.get_blockptr() == first.get_blockptr()) {
+                       std::cout << "after delete, the first and second is in the same block\n";
+                     if (first.get_offset() == first.get_blockptr()->size() - 1) {
+                         std::cout << "the last item is deleted, ii should inc\n";
+                       ii ++;
+                     }
+                     if (iter_end.get_blockptr() == ii.get_blockptr()) {
+                         std::cout << "the next iter should be move forwarded, the origin offset is : " << iter_end.get_offset() << "\n";
+                       iter_end = iterator(iter_end.get_blockptr(), iter_end.get_offset() - 1);
+                       value_ptrs[key + 1] = iter_end;
+                       for (uint32_t kk = key + 2; kk < value_ptrs.size(); kk ++) {
+                         if (value_ptrs[kk].get_blockptr() == ii.get_blockptr()) {
+                           iterator ti = iterator(value_ptrs[kk].get_blockptr(), value_ptrs[kk].get_offset() - 1);
+                           value_ptrs[kk] = ti;
+                         }
+                       }
+                     }
+                     continue;
+                   }
+               }
+               ii ++;
+           }
+           return;
+       }
        std::pair<iterator, iterator> iter_pair = values.delete_(iter_begin, iter_end);
        value_ptrs[key] = iter_pair.first;
-       if (key + 1 < value_ptrs.size()) {
-         value_ptrs[key + 1] = iter_pair.second;
+       if (iter_pair.second.get_blockptr() == NULL) {
+         value_ptrs.erase(value_ptrs.begin() + key);
        }
+       if ((int)(key + 1) < (int)value_ptrs.size()) {
+           std::cout << "the end iter is changed" << std::endl;
+         value_ptrs[key + 1] = iter_pair.second;
+       ASSERT_EQ(value_ptrs[key+1].get_blockptr(), iter_pair.second.get_blockptr());
+       ASSERT_EQ(value_ptrs[key+1].get_offset(), iter_pair.second.get_offset());
+       }
+       
+     }
+
+     void print_block() {
+       std::cout << "---------Print block list begin-------\n";
+       std::cout << "[Value_ptrs]\n";
+       for (uint32_t i = 0; i < value_ptrs.size(); i++) {
+           std::cout << value_ptrs[i].get_blockptr() << " " << value_ptrs[i].get_offset() << std::endl;
+       }
+       std::cout << "[Blocks:]\n";
+       blocktype* bp = values.begin().get_blockptr();
+       while (bp != NULL) {
+         std::cout << bp << " " << bp->size();
+         bp = bp->next();
+       }
+       std::cout << "--------Print block list end-------\n";
      }
 
 

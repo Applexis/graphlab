@@ -254,6 +254,7 @@ namespace graphlab {
      }
 
      if (bptr_a == bptr_b) {
+         //return ret_type(begin_del_iter, end_del_iter);
          std::cout << "a == b" << std::endl;
          std::cout << "a size: " << bptr_a->_size << std::endl;
          std::cout << "b size: " << bptr_b->_size << std::endl;
@@ -265,17 +266,19 @@ namespace graphlab {
          std::copy(bptr_b->values + offset_b, bptr_b->values + offset_b + nmove, bptr_a->values + offset_a); 
          end_del_iter = begin_del_iter;
      } else if (!is_end) {
+         //return ret_type(begin_del_iter, end_del_iter);
          std::cout << "a size: " << bptr_a->_size << std::endl;
          std::cout << "b size: " << bptr_b->_size << std::endl;
          std::cout << "a offset: " << offset_a << std::endl; 
          std::cout << "b offset: " << offset_b << std::endl;
          std::cout << "a next:" << bptr_a->_next << std::endl;
        bptr_a->_size = offset_a;
-       //std::copy(bptr_b->values + offset_b, bptr_b->values + bptr_b->_size, bptr_b->values);
-       //end_del_iter = iterator(bptr_b, 0);
+       std::copy(bptr_b->values + offset_b, bptr_b->values + bptr_b->_size - 1, bptr_b->values);
+       end_del_iter = iterator(bptr_b, 0);
        bptr_b->_size = bptr_b->_size - offset_b;
        bptr_a->_next = bptr_b; 
      } else {
+       //  return ret_type(begin_del_iter, end_del_iter);
          std::cout << "a size: " << bptr_a->_size << std::endl;
          std::cout << "a offset: " << offset_a << std::endl; 
          std::cout << "a next:" << bptr_a->_next << std::endl;
