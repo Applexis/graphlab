@@ -122,6 +122,11 @@ int main(int argc, char** argv) {
                        "If set, will save the resultant pagerank to a "
                        "sequence of files with prefix saveprefix");
 
+  if(!clopts.parse(argc, argv)) {
+    dc.cout() << "Error in parsing command line arguments." << std::endl;
+    return EXIT_FAILURE;
+  }
+
   // Build the graph ----------------------------------------------------------
   graph_type graph(dc, clopts);
   dc.cout() << "Loading graph in format: "<< format << std::endl;

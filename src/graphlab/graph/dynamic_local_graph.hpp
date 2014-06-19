@@ -217,57 +217,15 @@ _csc_storage.print_block();
               _csr_storage.delete_(k, vid);
               _csc_storage.delete_(k, vid);
           }
-/*int vo = 7;
-          for (int i = 0; i < 10; i ++) {
-            int n = 0;
-            vertex_type v1(*this, i);
-            foreach(edge_type e, v1.out_edges()) {
-                n ++;
-            }
-            std::cout << "vid: " << i << " has " << n << " in edges" << std::endl;
-          std::cout << _csc_storage.begin(i).get_offset() << std::endl;
-          std::cout << _csc_storage.end(i).get_offset() << std::endl;
-          std::cout << _csc_storage.begin(i).get_blockptr() << std::endl;
-          std::cout << _csc_storage.end(i).get_blockptr() << std::endl;
-            if (n == 0) {vo = i;}
-          }
-*/
-       //   vertex_type voo(*this, vo); 
-       //   std::cout << _csr_storage.begin(vo).get_offset() << std::endl;
-       //   std::cout << _csr_storage.end(vo).get_offset() << std::endl;
-       //   edge_list_type xx = voo.out_edges();
-       //   foreach(edge_type e, xx) {
-       //       std::cout << "[debug] out edge exits, source: " << e.source().id() << " target: " << e.target().id() << std::endl;
-       //   }
-       //   edge_list_type yy = voo.in_edges();
-       //   foreach(edge_type e, yy) {
-       //       std::cout << "[debug] in edge exits" << std::endl;
-       //   }
+          
           // Delete the edges from csr and csc storage.
           _csr_storage.delete_(vid, -1); 
           _csc_storage.delete_(vid, -1); 
           _csr_storage.repack();
           _csc_storage.repack();
 print_edges();
- /*         std::cout << "after repack: " << std::endl;
-          for (int i = 0; i < 10; i ++) {
-            int n = 0;
-            vertex_type v1(*this, i);
-            foreach(edge_type e, v1.out_edges()) {
-                n ++;
-            }
-            std::cout << "vid: " << i << " has " << n << " in edges" << std::endl;
-          std::cout << _csc_storage.begin(i).get_offset() << std::endl;
-          std::cout << _csc_storage.end(i).get_offset() << std::endl;
-          std::cout << _csc_storage.begin(i).get_blockptr() << std::endl;
-          std::cout << _csc_storage.end(i).get_blockptr() << std::endl;
-          }
-*/
           std::cout << "[debug]After delete, the in edges count is: " << v.num_in_edges() << std::endl;
           std::cout << "[debug]After delete, the out edges count is: " << v.num_out_edges() << std::endl;
-
-          //std::cout << "[vo]" << _csr_storage.begin(vid).get_blockptr() << " " <<_csr_storage.begin(vid).get_offset()  << std::endl;
-          //std::cout << "[vo]" << _csr_storage.end(vid).get_blockptr() << " " <<_csr_storage.end(vid).get_offset()  << std::endl;
                             
           return;
         }
@@ -287,7 +245,7 @@ print_edges();
       //made by cyc
       crSet.insert(vid);
 
-      std::cout << "[dynamic_local_graph]a vertex is added, id is:" << vid << std::endl;
+      //std::cout << "[dynamic_local_graph]a vertex is added, id is:" << vid << std::endl;
     } // End of add vertex;
 
     void reserve(size_t num_vertices) {
@@ -313,7 +271,7 @@ print_edges();
      */
     edge_id_type add_edge(lvid_type source, lvid_type target,
                           const EdgeData& edata = EdgeData()) {
-std::cout << "[dynamic_local_graph]target: "<<target<<" source: " << source<< std::endl;
+//std::cout << "[dynamic_local_graph]target: "<<target<<" source: " << source<< std::endl;
 crSet.insert(source);
 crSet.insert(target);
       if(source == target) {
@@ -404,20 +362,20 @@ crSet.insert(target);
         q.pop();
         vertex_type v(*this, x);
         edge_list_type vers = v.out_edges();
-std::cout<<"[testout]out edges of v " << x << "-> ";
+// std::cout<<"[testout]out edges of v " << x << "-> ";
         foreach(edge_type e, vers) {
           lvid_type out = e.target().id();
-std::cout <<out<< " ";
+// std::cout <<out<< " ";
           if(crSet.find(out) == crSet.end()) {
             q.push(out);
             crSet.insert(out);
-            logstream(LOG_INFO)
-              << "urSet: " << out << std::endl;
+            // logstream(LOG_INFO)
+            //  << "urSet: " << out << std::endl;
           }
           // fout << (lvid_type)i << ", " << e.target().id() << "\n";
           // ASSERT_TRUE(fout.good());
         }
-std::cout <<std::endl;
+// std::cout <<std::endl;
       }
       //get b set
       for(size_t i = 0; i < num_vertices(); i++) {
@@ -437,13 +395,13 @@ std::cout <<std::endl;
       }
       for (iter=crSet.begin(); iter!=crSet.end(); iter++) {
         vset_to_activate.dynamic_set_lvid(*iter);
-        logstream(LOG_INFO)
-          << "crSet: " << *iter << std::endl;
+        //logstream(LOG_INFO)
+        //  << "crSet: " << *iter << std::endl;
       }
       for (iter=bSet.begin(); iter!=bSet.end(); iter++) {
         vset_to_activate.dynamic_set_lvid(*iter);
-        logstream(LOG_INFO)
-          << "bSet: " << *iter << std::endl;
+        //logstream(LOG_INFO)
+        //  << "bSet: " << *iter << std::endl;
       }
       
     }

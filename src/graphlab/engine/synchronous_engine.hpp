@@ -1098,6 +1098,12 @@ namespace graphlab {
           logstream(LOG_EMPH) << "Engine Option: saveprefix = "
             << saveprefix<< std::endl;
         }
+      } else if (opt == "format") {
+        opts.get_engine_args().get_option("format", format);
+        if (rmi.procid() == 0) {
+          logstream(LOG_EMPH) << "Engine Option: format = "
+            << format << std::endl;
+        }
       } else {
         logstream(LOG_FATAL) << "Unexpected Engine Option: " << opt << std::endl;
       }
