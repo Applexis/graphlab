@@ -175,6 +175,7 @@ std::cout<<"[dynamic_local_graph]vset is inited" << std::endl;
           logstream(LOG_INFO) << "[debug]a vertex should be delete, which lid is " << vid << std::endl;
 
           vertex_type v(*this, vid);
+          v.data() = 0;
           // Mark the out vertices to be activated.
           edge_list_type ls = v.out_edges();
           foreach(edge_type e, ls) {
